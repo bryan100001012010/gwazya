@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For Grasya</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>For Grasya</h1>
+        <div id="calendar-container">
+        </div>
+
+        <div id="letter-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2 id="modal-date"></h2>
+
+                <div id="gallery-display-area">
+                    <p id="no-images-text">No images stored for this date.</p>
+                    <div id="image-previews-container">
+                        </div>
+                </div>
+
+                <div class="file-upload-wrapper">
+                    <label for="image-upload" class="custom-file-label">📁 Upload Image</label>
+                    <input type="file" id="image-upload" accept="image/*" multiple>
+               </div>
+
+
+                <textarea id="letter-input" placeholder="Write your letter here..."></textarea>
+                <button id="save-content">Save Content</button>
+                <button id="delete-all-content" class="delete-button">Delete All Content</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
