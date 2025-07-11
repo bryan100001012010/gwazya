@@ -2,19 +2,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const calendarContainer = document.getElementById('calendar-container');
     const letterModal = document.getElementById('letter-modal');
     const modalDate = document.getElementById('modal-date');
-    const galleryDisplayArea = document.getElementById('gallery-display-area'); // New
-    const noImagesText = document.getElementById('no-images-text');         // New
-    const imagePreviewsContainer = document.getElementById('image-previews-container'); // New
-    const imageUploadInput = document.getElementById('image-upload');     // Still this ID, but now handles multiple
+    const galleryDisplayArea = document.getElementById('gallery-display-area');
+    const noImagesText = document.getElementById('no-images-text');
+    const imagePreviewsContainer = document.getElementById('image-previews-container');
+    const imageUploadInput = document.getElementById('image-upload');
     const letterInput = document.getElementById('letter-input');
     const saveContentBtn = document.getElementById('save-content');
-    const deleteAllContentBtn = document.getElementById('delete-all-content'); // Renamed
+    const deleteAllContentBtn = document.getElementById('delete-all-content');
     const closeButton = document.querySelector('.close-button');
 
-    let selectedDate = null; // To store the currently selected date (YYYY-MM-DD)
-    let currentImages = []; // Array to hold Base64 strings of images for the current date in the modal
+    // NEW Lightbox elements
+    const lightboxModal = document.getElementById('lightbox-modal');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    const lightboxPrev = document.getElementById('lightbox-prev');
+    const lightboxNext = document.getElementById('lightbox-next');
 
-    // Function to generate the full year calendar
+    let selectedDate = null;
+    let currentImages = []; // Array to hold Base64 strings of images for the current date in the modal
+    let currentImageIndex = 0; // NEW: To keep track of the currently viewed image in the lightbox
+
+    // Function to generate the full year calendar (no changes here)
     function generateCalendar(year) {
         calendarContainer.innerHTML = '';
 
@@ -73,7 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     dateCell.classList.add('current-day');
                 }
 
-                // Check if there's any content (letter or images) for this date
                 const storedData = JSON.parse(localStorage.getItem(fullDate));
                 if (storedData && (storedData.letter || (storedData.images && storedData.images.length > 0))) {
                     dateCell.classList.add('has-content');
@@ -90,13 +97,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Function to display image previews in the modal
     function displayImagePreviews() {
-        imagePreviewsContainer.innerHTML = ''; // Clear previous previews
+        imagePreviewsContainer.innerHTML = '';
         if (currentImages.length === 0) {
             noImagesText.style.display = 'block';
-            galleryDisplayArea.style.justifyContent = 'center'; // Center when empty
+            galleryDisplayArea.style.justifyContent = 'center';
         } else {
             noImagesText.style.display = 'none';
-            galleryDisplayArea.style.justifyContent = 'flex-start'; // Align top when images are present
+            galleryDisplayArea.style.justifyContent = 'flex-start';
             currentImages.forEach((base64Image, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.classList.add('image-preview-wrapper');
@@ -106,11 +113,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 img.alt = `Image ${index + 1}`;
                 wrapper.appendChild(img);
 
+                // NEW: Add click listener to open lightbox
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent the modal itself from potentially closing
+                    openLightbox(index);
+                });
+
+
                 const deleteBtn = document.createElement('button');
                 deleteBtn.classList.add('delete-image-btn');
                 deleteBtn.textContent = 'X';
                 deleteBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent modal from closing if button is within a clickable area
+                    e.stopPropagation();
                     removeImage(index);
                 });
                 wrapper.appendChild(deleteBtn);
@@ -120,32 +134,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Function to remove an image from the currentImages array
+    // Function to remove an image from the currentImages array (no changes here)
     function removeImage(indexToRemove) {
-        currentImages.splice(indexToRemove, 1); // Remove the image at the specified index
-        displayImagePreviews(); // Re-render the previews
+        currentImages.splice(indexToRemove, 1);
+        displayImagePreviews();
     }
 
-
-    // Function to open the content modal (letter and gallery)
+    // Function to open the content modal (no changes here)
     function openContentModal(date) {
         selectedDate = date;
-        modalDate.textContent = `letter for grasya  ${formatDateDisplay(date)}`;
+        modalDate.textContent = `Letter for Grasya ${formatDateDisplay(date)}`;
 
-        // Load existing content or initialize
         const storedData = JSON.parse(localStorage.getItem(date)) || { letter: '', images: [] };
         letterInput.value = storedData.letter || '';
-        currentImages = storedData.images || []; // Initialize currentImages with stored ones
+        currentImages = storedData.images || [];
 
-        imageUploadInput.value = ''; // Clear file input for new selections
-        displayImagePreviews(); // Render existing images
+        imageUploadInput.value = '';
+        displayImagePreviews();
 
         letterModal.style.display = 'flex';
         setTimeout(() => letterModal.classList.add('active'), 10);
         letterInput.focus();
     }
 
-    // Function to close the modal
+    // Function to close the modal (no changes here, as lightbox has its own close)
     function closeContentModal() {
         letterModal.classList.remove('active');
         setTimeout(() => {
@@ -153,43 +165,42 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedDate = null;
             letterInput.value = '';
             imageUploadInput.value = '';
-            currentImages = []; // Clear current images
-            imagePreviewsContainer.innerHTML = ''; // Clear previews from modal
-            noImagesText.style.display = 'block'; // Show no image text again
+            currentImages = [];
+            imagePreviewsContainer.innerHTML = '';
+            noImagesText.style.display = 'block';
         }, 300);
 
-        generateCalendar(new Date().getFullYear()); // Re-generate calendar to update 'has-content' class
+        generateCalendar(new Date().getFullYear());
     }
 
-    // Format date for display in the modal
+    // Format date for display in the modal (no changes here)
     function formatDateDisplay(dateString) {
         const [year, month, day] = dateString.split('-');
         const dateObj = new Date(year, parseInt(month) - 1, day);
         return dateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     }
 
-    // Event listener for image file selection (handles multiple)
+    // Event listener for image file selection (no changes here)
     imageUploadInput.addEventListener('change', (event) => {
         const files = event.target.files;
         if (files.length > 0) {
-            // Process each selected file
             Array.from(files).forEach(file => {
-                if (file.type.startsWith('image/')) { // Ensure it's an image
+                if (file.type.startsWith('image/')) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        currentImages.push(e.target.result); // Add Base64 string to the array
-                        displayImagePreviews(); // Re-render to show new image
+                        currentImages.push(e.target.result);
+                        displayImagePreviews();
                     };
-                    reader.readAsDataURL(file); // Read as Base64
+                    reader.readAsDataURL(file);
                 } else {
                     alert('Please select only image files.');
                 }
             });
-            imageUploadInput.value = ''; // Clear file input so same files can be re-selected if needed
+            imageUploadInput.value = '';
         }
     });
 
-    // Save content (letter and images) to local storage
+    // Save content (letter and images) to local storage (no changes here)
     saveContentBtn.addEventListener('click', () => {
         if (selectedDate) {
             const letterContent = letterInput.value.trim();
@@ -199,19 +210,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 contentToStore.letter = letterContent;
             }
             if (currentImages.length > 0) {
-                contentToStore.images = currentImages; // Store the array of images
+                contentToStore.images = currentImages;
             }
 
             if (Object.keys(contentToStore).length > 0) {
                 localStorage.setItem(selectedDate, JSON.stringify(contentToStore));
             } else {
-                localStorage.removeItem(selectedDate); // Remove if both are empty
+                localStorage.removeItem(selectedDate);
             }
             closeContentModal();
         }
     });
 
-    // Delete all content (letter and images) for the selected date
+    // Delete all content (letter and images) for the selected date (no changes here)
     deleteAllContentBtn.addEventListener('click', () => {
         if (selectedDate && confirm('Are you sure you want to delete ALL content (letter and all images) for this date?')) {
             localStorage.removeItem(selectedDate);
@@ -219,13 +230,77 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Close modal when close button is clicked
+    // Close content modal when its close button is clicked (no changes here)
     closeButton.addEventListener('click', closeContentModal);
 
-    // Close modal when clicking outside the modal content
+    // Close content modal when clicking outside its content (no changes here)
     window.addEventListener('click', (event) => {
         if (event.target == letterModal) {
             closeContentModal();
+        }
+    });
+
+    // --- NEW LIGHTBOX FUNCTIONS ---
+
+    // Function to open the lightbox
+    function openLightbox(index) {
+        currentImageIndex = index;
+        updateLightboxImage();
+        lightboxModal.style.display = 'flex';
+        setTimeout(() => lightboxModal.classList.add('active'), 10);
+    }
+
+    // Function to update the image in the lightbox
+    function updateLightboxImage() {
+        if (currentImages.length > 0) {
+            lightboxImg.src = currentImages[currentImageIndex];
+            // Show/hide navigation buttons based on image count
+            lightboxPrev.style.display = currentImages.length > 1 ? 'flex' : 'none';
+            lightboxNext.style.display = currentImages.length > 1 ? 'flex' : 'none';
+        } else {
+            // Should not happen if openLightbox is only called when images exist
+            closeLightbox();
+        }
+    }
+
+    // Function to navigate to the previous image
+    lightboxPrev.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing lightbox if clicking outside
+        currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+        updateLightboxImage();
+    });
+
+    // Function to navigate to the next image
+    lightboxNext.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent closing lightbox if clicking outside
+        currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+        updateLightboxImage();
+    });
+
+    // Function to close the lightbox
+    function closeLightbox() {
+        lightboxModal.classList.remove('active');
+        setTimeout(() => {
+            lightboxModal.style.display = 'none';
+            lightboxImg.src = ''; // Clear the image source
+        }, 300);
+    }
+
+    // Event listener to close lightbox when the close button is clicked
+    lightboxClose.addEventListener('click', closeLightbox);
+
+    // Event listener to close lightbox when clicking outside the image
+    lightboxModal.addEventListener('click', (event) => {
+        // Only close if the click is directly on the modal background, not on the image or buttons
+        if (event.target === lightboxModal) {
+            closeLightbox();
+        }
+    });
+
+    // Optional: Close lightbox with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightboxModal.classList.contains('active')) {
+            closeLightbox();
         }
     });
 
